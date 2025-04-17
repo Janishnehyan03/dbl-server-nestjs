@@ -7,7 +7,7 @@ async function bootstrap() {
   app.use(morgan('dev'));
 
   app.enableCors({
-    origin: 'http://localhost:5001', // Make sure this matches your frontend
+    origin: ['http://localhost:5001', 'https://dbl-client.vercel.app'], // Make sure this matches your frontend
     methods: 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
     allowedHeaders: 'Content-Type, Authorization',
     credentials: true, // ✅ Required for sending cookies/auth headers
