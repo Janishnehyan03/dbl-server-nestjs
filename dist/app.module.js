@@ -35,7 +35,8 @@ exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
             auth_module_1.AuthModule,
-            mongoose_1.MongooseModule.forRoot('mongodb://localhost/library', {
+            mongoose_1.MongooseModule.forRoot(process.env.MONGO_URI ||
+                'mongodb://localhost/library', {
                 connectionFactory: (connection) => {
                     console.log('DB Connected');
                     return connection;

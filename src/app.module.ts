@@ -23,7 +23,9 @@ import { CirculationModule } from './circulation/circulation.module';
 @Module({
   imports: [
     AuthModule,
-    MongooseModule.forRoot('mongodb://localhost/library', {
+    MongooseModule.forRoot( 
+      process.env.MONGO_URI || 
+      'mongodb://localhost/library', {
       connectionFactory: (connection) => {
         console.log('DB Connected');
         return connection;
