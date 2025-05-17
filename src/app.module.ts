@@ -19,18 +19,21 @@ import { SectionsModule } from './sections/sections.module';
 import { PatronModule } from './patron/patron.module';
 import { BooksModule } from './books/books.module';
 import { CirculationModule } from './circulation/circulation.module';
+import { JwtModule } from '@nestjs/jwt';
+import { LibrarySettingsModule } from './library-settings/library-settings.module';
 
 @Module({
   imports: [
     AuthModule,
-    MongooseModule.forRoot( 
-      process.env.MONGO_URI || 
-      'mongodb://localhost/library', {
-      connectionFactory: (connection) => {
-        console.log('DB Connected');
-        return connection;
+    MongooseModule.forRoot(
+      process.env.MONGO_URI || 'mongodb://localhost/library',
+      {
+        connectionFactory: (connection) => {
+          console.log('DB Connected');
+          return connection;
+        },
       },
-    }),
+    ),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -51,6 +54,11 @@ import { CirculationModule } from './circulation/circulation.module';
     PatronModule,
     BooksModule,
     CirculationModule,
+    JwtModule.register({
+      secret: process.env.JWT_SECRET,
+      signOptions: { algorithm: 'HS256' },
+    }),
+    LibrarySettingsModule,
   ],
 })
 export class AppModule {}

@@ -30,7 +30,8 @@ export class BooksService {
       .findById(id)
       .populate('authors')
       .populate('categories')
-      .populate('publisher')
+      .populate('publisher').populate('location')
+      .populate('language') 
       .exec();
 
     if (!book) throw new NotFoundException('Book not found');

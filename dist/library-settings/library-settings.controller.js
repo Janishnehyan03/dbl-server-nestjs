@@ -12,79 +12,70 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PatronController = void 0;
+exports.LibrarySettingsController = void 0;
 const common_1 = require("@nestjs/common");
-const patron_service_1 = require("./patron.service");
-let PatronController = class PatronController {
-    patronService;
-    constructor(patronService) {
-        this.patronService = patronService;
+const library_settings_service_1 = require("./library-settings.service");
+const create_library_settings_dto_1 = require("./dto/create-library-settings.dto");
+let LibrarySettingsController = class LibrarySettingsController {
+    librarySettingsService;
+    constructor(librarySettingsService) {
+        this.librarySettingsService = librarySettingsService;
     }
-    async createBulk(patrons) {
-        return this.patronService.createBulk(patrons);
+    async create(createLibrarySettingsDto) {
+        return this.librarySettingsService.create(createLibrarySettingsDto);
     }
-    async findAll(query) {
-        return this.patronService.findAll(query);
+    async findAll() {
+        return this.librarySettingsService.findAll();
     }
-    async findById(id) {
-        return this.patronService.findById(id);
+    async findOne(id) {
+        return this.librarySettingsService.findOne(id);
     }
-    async searchPatrons(admissionNumber) {
-        return this.patronService.searchPatron(admissionNumber);
+    async update(id, updateLibrarySettingsDto) {
+        return this.librarySettingsService.update(id, updateLibrarySettingsDto);
     }
-    async update(id, updateData) {
-        return this.patronService.update(id, updateData);
-    }
-    async delete(id) {
-        return this.patronService.delete(id);
+    async remove(id) {
+        return this.librarySettingsService.remove(id);
     }
 };
-exports.PatronController = PatronController;
+exports.LibrarySettingsController = LibrarySettingsController;
 __decorate([
-    (0, common_1.Post)('bulk-insert'),
+    (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [create_library_settings_dto_1.CreateLibrarySettingsDto]),
     __metadata("design:returntype", Promise)
-], PatronController.prototype, "createBulk", null);
+], LibrarySettingsController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
-], PatronController.prototype, "findAll", null);
+], LibrarySettingsController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
-], PatronController.prototype, "findById", null);
+], LibrarySettingsController.prototype, "findOne", null);
 __decorate([
-    (0, common_1.Get)('search/data'),
-    __param(0, (0, common_1.Query)('admissionNumber')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", Promise)
-], PatronController.prototype, "searchPatrons", null);
-__decorate([
-    (0, common_1.Put)(':id'),
+    (0, common_1.Patch)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, create_library_settings_dto_1.UpdateLibrarySettingsDto]),
     __metadata("design:returntype", Promise)
-], PatronController.prototype, "update", null);
+], LibrarySettingsController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.NO_CONTENT),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
-], PatronController.prototype, "delete", null);
-exports.PatronController = PatronController = __decorate([
-    (0, common_1.Controller)('patrons'),
-    __metadata("design:paramtypes", [patron_service_1.PatronService])
-], PatronController);
-//# sourceMappingURL=patron.controller.js.map
+], LibrarySettingsController.prototype, "remove", null);
+exports.LibrarySettingsController = LibrarySettingsController = __decorate([
+    (0, common_1.Controller)('library-settings'),
+    __metadata("design:paramtypes", [library_settings_service_1.LibrarySettingsService])
+], LibrarySettingsController);
+//# sourceMappingURL=library-settings.controller.js.map

@@ -11,7 +11,7 @@ export declare class PatronService {
     findAll(filter?: any): Promise<Patron[]>;
     findById(id: string): Promise<Patron>;
     update(id: string, updateData: Partial<Patron>): Promise<Patron>;
-    searchPatrons(searchText: string): Promise<Patron[]>;
+    searchPatron(admissionNumber: string): Promise<Patron>;
     delete(id: string): Promise<{
         message: string;
     }>;

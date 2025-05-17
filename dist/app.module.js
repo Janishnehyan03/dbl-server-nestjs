@@ -28,6 +28,8 @@ const sections_module_1 = require("./sections/sections.module");
 const patron_module_1 = require("./patron/patron.module");
 const books_module_1 = require("./books/books.module");
 const circulation_module_1 = require("./circulation/circulation.module");
+const jwt_1 = require("@nestjs/jwt");
+const library_settings_module_1 = require("./library-settings/library-settings.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -35,8 +37,7 @@ exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
             auth_module_1.AuthModule,
-            mongoose_1.MongooseModule.forRoot(process.env.MONGO_URI ||
-                'mongodb://localhost/library', {
+            mongoose_1.MongooseModule.forRoot(process.env.MONGO_URI || 'mongodb://localhost/library', {
                 connectionFactory: (connection) => {
                     console.log('DB Connected');
                     return connection;
@@ -62,6 +63,11 @@ exports.AppModule = AppModule = __decorate([
             patron_module_1.PatronModule,
             books_module_1.BooksModule,
             circulation_module_1.CirculationModule,
+            jwt_1.JwtModule.register({
+                secret: process.env.JWT_SECRET,
+                signOptions: { algorithm: 'HS256' },
+            }),
+            library_settings_module_1.LibrarySettingsModule,
         ],
     })
 ], AppModule);

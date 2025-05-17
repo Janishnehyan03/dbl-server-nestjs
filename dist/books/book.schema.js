@@ -108,7 +108,7 @@ __decorate([
 __decorate([
     (0, mongoose_1.Prop)({
         default: 'available',
-        enum: ['available', 'checked_out', 'lost', 'damaged'],
+        enum: ['available', 'issued', 'lost', 'damaged'],
     }),
     __metadata("design:type", String)
 ], Book.prototype, "status", void 0);

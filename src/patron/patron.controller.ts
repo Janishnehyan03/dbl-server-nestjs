@@ -37,8 +37,8 @@ export class PatronController {
 
   // Search Patrons by Name or Admission Number
   @Get('search/data')
-  async searchPatrons(@Query('search') search: string) {
-    return this.patronService.searchPatrons(search);
+  async searchPatrons(@Query('admissionNumber') admissionNumber: string) {
+    return this.patronService.searchPatron(admissionNumber);
   }
 
   // 🔹 Update Patron by ID

@@ -92,7 +92,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CirculationController.prototype, "calculatePatronFines", null);
 exports.CirculationController = CirculationController = __decorate([
-    (0, common_1.Controller)('circulation'),
+    (0, common_1.Controller)('circulations'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __metadata("design:paramtypes", [circulation_service_1.CirculationService])
 ], CirculationController);

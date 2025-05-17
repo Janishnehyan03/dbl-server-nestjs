@@ -6,7 +6,7 @@ import { IssueBookDto } from './dto/issue-book.dto';
 import { RenewBookDto } from './dto/renew-book.dto';
 import { ReturnBookDto } from './dto/return-book.dto';
 
-@Controller('circulation')
+@Controller('circulations')
 @UseGuards(JwtAuthGuard)
 export class CirculationController {
   constructor(private readonly circulationService: CirculationService) {}

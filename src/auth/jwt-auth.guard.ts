@@ -3,6 +3,7 @@ import {
   ExecutionContext,
   UnauthorizedException,
   Logger,
+  mixin,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
@@ -21,8 +22,8 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     super();
   }
 
-  canActivate(context: ExecutionContext) {
-    // Check for public routes first (optional)
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    // Check for public routes first
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -41,16 +42,21 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     }
 
     try {
-      // Verify token manually to get more detailed error information
-      this.jwtService.verify(token);
-      return super.canActivate(context);
+      const payload = await this.jwtService.verifyAsync(token, {
+        secret: process.env.JWT_SECRET,
+      });
+      request.user = payload; // Attach the user payload to the request object
+      return true;
     } catch (error) {
-      this.logger.error(`JWT verification failed: ${error.message}`);
+      this.logger.error(
+        `JWT verification failed: ${error.message}`,
+        error.stack,
+      );
       throw new UnauthorizedException(this.getErrorMessage(error));
     }
   }
 
-  handleRequest(err: any, user: any, info: any, context: ExecutionContext) {
+  handleRequest(err: any, user: any, info: any) {
     if (err || !user) {
       this.logger.error(
         `JWT validation error: ${err?.message || info?.message}`,
@@ -59,24 +65,25 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         err?.message || info?.message || 'Invalid authentication token',
       );
     }
-
-    // Attach the user to the request for later use in controllers
-    const request = context.switchToHttp().getRequest<Request>();
-    request.user = user;
-
     return user;
   }
 
   private extractTokenFromHeader(request: Request): string | undefined {
-    const [type, token] = request.headers.authorization?.split(' ') ?? [];
+    const authHeader =
+      request.headers.authorization || request.headers.Authorization;
+    if (!authHeader) return undefined;
+
+    const [type, token] = authHeader.toString().split(' ');
     return type === 'Bearer' ? token : undefined;
   }
 
-  private getErrorMessage(error: Error): string {
+  private getErrorMessage(error: any): string {
     if (error.name === 'TokenExpiredError') {
       return 'Authentication token has expired';
     } else if (error.name === 'JsonWebTokenError') {
       return 'Invalid authentication token';
+    } else if (error.name === 'NotBeforeError') {
+      return 'Token not yet valid';
     }
     return 'Authentication failed';
   }

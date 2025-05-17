@@ -25,7 +25,7 @@ let JwtAuthGuard = JwtAuthGuard_1 = class JwtAuthGuard extends (0, passport_1.Au
         this.reflector = reflector;
         this.jwtService = jwtService;
     }
-    canActivate(context) {
+    async canActivate(context) {
         const isPublic = this.reflector.getAllAndOverride(public_decorator_1.IS_PUBLIC_KEY, [
             context.getHandler(),
             context.getClass(),
@@ -40,25 +40,29 @@ let JwtAuthGuard = JwtAuthGuard_1 = class JwtAuthGuard extends (0, passport_1.Au
             throw new common_1.UnauthorizedException('Authentication token is required');
         }
         try {
-            this.jwtService.verify(token);
-            return super.canActivate(context);
+            const payload = await this.jwtService.verifyAsync(token, {
+                secret: process.env.JWT_SECRET,
+            });
+            request.user = payload;
+            return true;
         }
         catch (error) {
-            this.logger.error(`JWT verification failed: ${error.message}`);
+            this.logger.error(`JWT verification failed: ${error.message}`, error.stack);
             throw new common_1.UnauthorizedException(this.getErrorMessage(error));
         }
     }
-    handleRequest(err, user, info, context) {
+    handleRequest(err, user, info) {
         if (err || !user) {
             this.logger.error(`JWT validation error: ${err?.message || info?.message}`);
             throw new common_1.UnauthorizedException(err?.message || info?.message || 'Invalid authentication token');
         }
-        const request = context.switchToHttp().getRequest();
-        request.user = user;
         return user;
     }
     extractTokenFromHeader(request) {
-        const [type, token] = request.headers.authorization?.split(' ') ?? [];
+        const authHeader = request.headers.authorization || request.headers.Authorization;
+        if (!authHeader)
+            return undefined;
+        const [type, token] = authHeader.toString().split(' ');
         return type === 'Bearer' ? token : undefined;
     }
     getErrorMessage(error) {
@@ -67,6 +71,9 @@ let JwtAuthGuard = JwtAuthGuard_1 = class JwtAuthGuard extends (0, passport_1.Au
         }
         else if (error.name === 'JsonWebTokenError') {
             return 'Invalid authentication token';
+        }
+        else if (error.name === 'NotBeforeError') {
+            return 'Token not yet valid';
         }
         return 'Authentication failed';
     }

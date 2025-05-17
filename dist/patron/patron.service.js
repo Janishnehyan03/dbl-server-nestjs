@@ -61,21 +61,32 @@ let PatronService = class PatronService {
             throw new common_1.NotFoundException(`Patron with ID ${id} not found.`);
         return updatedPatron;
     }
-    async searchPatrons(searchText) {
-        if (!searchText?.trim()) {
-            throw new common_1.BadRequestException('Search text is required.');
+    async searchPatron(admissionNumber) {
+        if (!admissionNumber?.trim()) {
+            throw new common_1.BadRequestException('Admission number is required.');
         }
-        const regex = new RegExp(searchText.trim(), 'i');
-        const patrons = await this.patronModel
-            .find({
-            $or: [{ admissionNumber: regex }, { name: regex }],
-        })
-            .populate(['section', 'division', 'department', 'class', 'role'])
-            .exec();
-        if (!patrons.length) {
-            throw new common_1.NotFoundException('No patrons found matching the search criteria.');
+        const normalizedAdmissionNumber = admissionNumber.trim();
+        try {
+            const patron = await this.patronModel
+                .findOne({
+                admissionNumber: {
+                    $regex: new RegExp(`^${normalizedAdmissionNumber}$`, 'i'),
+                },
+            })
+                .populate(['section', 'division', 'department', 'class', 'role'])
+                .lean()
+                .exec();
+            if (!patron) {
+                throw new common_1.NotFoundException(`Patron with admission number "${normalizedAdmissionNumber}" not found.`);
+            }
+            return patron;
         }
-        return patrons;
+        catch (error) {
+            if (error instanceof common_1.NotFoundException) {
+                throw error;
+            }
+            throw new common_1.InternalServerErrorException('Error searching for patron');
+        }
     }
     async delete(id) {
         const result = await this.patronModel.findByIdAndDelete(id).exec();

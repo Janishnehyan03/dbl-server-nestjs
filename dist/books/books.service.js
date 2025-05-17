@@ -38,7 +38,8 @@ let BooksService = class BooksService {
             .findById(id)
             .populate('authors')
             .populate('categories')
-            .populate('publisher')
+            .populate('publisher').populate('location')
+            .populate('language')
             .exec();
         if (!book)
             throw new common_1.NotFoundException('Book not found');

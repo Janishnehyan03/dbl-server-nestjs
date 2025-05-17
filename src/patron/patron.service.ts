@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -65,26 +66,38 @@ export class PatronService {
     return updatedPatron;
   }
 
-  async searchPatrons(searchText: string): Promise<Patron[]> {
-    if (!searchText?.trim()) {
-      throw new BadRequestException('Search text is required.');
+  async searchPatron(admissionNumber: string): Promise<Patron> {
+    if (!admissionNumber?.trim()) {
+      throw new BadRequestException('Admission number is required.');
     }
 
-    const regex = new RegExp(searchText.trim(), 'i'); // Case-insensitive regex
-    const patrons = await this.patronModel
-      .find({
-        $or: [{ admissionNumber: regex }, { name: regex }],
-      })
-      .populate(['section', 'division', 'department', 'class', 'role'])
-      .exec();
+    // Trim and normalize the input
+    const normalizedAdmissionNumber = admissionNumber.trim();
 
-    if (!patrons.length) {
-      throw new NotFoundException(
-        'No patrons found matching the search criteria.',
-      );
+    try {
+      const patron = await this.patronModel
+        .findOne({
+          admissionNumber: {
+            $regex: new RegExp(`^${normalizedAdmissionNumber}$`, 'i'),
+          },
+        })
+        .populate(['section', 'division', 'department', 'class', 'role'])
+        .lean<Patron>()
+        .exec();
+
+      if (!patron) {
+        throw new NotFoundException(
+          `Patron with admission number "${normalizedAdmissionNumber}" not found.`,
+        );
+      }
+
+      return patron;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error searching for patron');
     }
-
-    return patrons;
   }
   // 🔹 Delete Patron by ID
   async delete(id: string): Promise<{ message: string }> {

@@ -63,7 +63,7 @@ export class Book {
 
   @Prop({
     default: 'available',
-    enum: ['available', 'checked_out', 'lost', 'damaged'],
+    enum: ['available', 'issued', 'lost', 'damaged'],
   })
   status: string;
 
