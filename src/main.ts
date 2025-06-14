@@ -15,6 +15,10 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(process.env.PORT ?? 5000);
+
+  const port = process.env.PORT ?? 3000;
+  await app.listen(port);
+  console.log(`Server running on http://localhost:${port}`);
+  console.log(`CORS enabled for origins: http://localhost:5001, https://dbl-client.vercel.app`);
 }
 bootstrap();

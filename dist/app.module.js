@@ -9,27 +9,28 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
+const jwt_1 = require("@nestjs/jwt");
 const mongoose_1 = require("@nestjs/mongoose");
+const app_controller_1 = require("./app/app.controller");
 const auth_module_1 = require("./auth/auth.module");
 const authors_module_1 = require("./authors/authors.module");
+const books_module_1 = require("./books/books.module");
 const categories_module_1 = require("./categories/categories.module");
+const circulation_module_1 = require("./circulation/circulation.module");
 const class_module_1 = require("./classes/class.module");
 const configuration_module_1 = require("./configuration/configuration.module");
 const departments_module_1 = require("./departments/departments.module");
 const divisions_module_1 = require("./divisions/divisions.module");
 const languages_module_1 = require("./languages/languages.module");
+const library_settings_module_1 = require("./library-settings/library-settings.module");
 const locations_module_1 = require("./locations/locations.module");
+const patron_module_1 = require("./patron/patron.module");
 const permission_category_module_1 = require("./permission-category/permission-category.module");
 const permission_module_1 = require("./permission/permission.module");
 const publishers_module_1 = require("./publishers/publishers.module");
 const quotes_module_1 = require("./quotes/quotes.module");
 const role_module_1 = require("./role/role.module");
 const sections_module_1 = require("./sections/sections.module");
-const patron_module_1 = require("./patron/patron.module");
-const books_module_1 = require("./books/books.module");
-const circulation_module_1 = require("./circulation/circulation.module");
-const jwt_1 = require("@nestjs/jwt");
-const library_settings_module_1 = require("./library-settings/library-settings.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -69,6 +70,7 @@ exports.AppModule = AppModule = __decorate([
             }),
             library_settings_module_1.LibrarySettingsModule,
         ],
+        controllers: [app_controller_1.AppController],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map
