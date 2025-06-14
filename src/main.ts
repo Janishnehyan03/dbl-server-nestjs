@@ -7,14 +7,11 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.use(morgan('dev'));
 
-  app.use(
-    cors({
-      origin: ['http://localhost:5001', 'https://dbl-client.vercel.app'],
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-      credentials: true,
-    }),
-  );
-
+  app.enableCors({
+    origin: ['http://localhost:5001', 'https://dbl-client.vercel.app'], // allowed frontend URLs
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    credentials: true,
+  });
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
