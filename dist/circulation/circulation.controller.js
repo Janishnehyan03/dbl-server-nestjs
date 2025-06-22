@@ -29,10 +29,10 @@ let CirculationController = class CirculationController {
         return this.circulationService.issueBook(issueBookDto, user._id);
     }
     async returnBook(returnBookDto, user) {
-        return this.circulationService.returnBook(returnBookDto, user._id.toString());
+        return this.circulationService.returnBook(returnBookDto, user._id);
     }
     async renewBook(renewBookDto, user) {
-        return this.circulationService.renewBook(renewBookDto, user._id.toString());
+        return this.circulationService.renewBook(renewBookDto, user._id);
     }
     async getOverdueBooks() {
         return this.circulationService.getOverdueBooks();

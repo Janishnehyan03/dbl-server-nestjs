@@ -12,12 +12,21 @@ const mongoose_1 = require("@nestjs/mongoose");
 const patron_schema_1 = require("./patron.schema");
 const patron_service_1 = require("./patron.service");
 const patron_controller_1 = require("./patron.controller");
+const circulation_schema_1 = require("../circulation/schemas/circulation.schema");
 let PatronModule = class PatronModule {
 };
 exports.PatronModule = PatronModule;
 exports.PatronModule = PatronModule = __decorate([
     (0, common_1.Module)({
-        imports: [mongoose_1.MongooseModule.forFeature([{ name: patron_schema_1.Patron.name, schema: patron_schema_1.PatronSchema }])],
+        imports: [
+            mongoose_1.MongooseModule.forFeature([
+                { name: patron_schema_1.Patron.name, schema: patron_schema_1.PatronSchema },
+                {
+                    name: circulation_schema_1.Circulation.name,
+                    schema: circulation_schema_1.CirculationSchema,
+                },
+            ]),
+        ],
         controllers: [patron_controller_1.PatronController],
         providers: [patron_service_1.PatronService],
         exports: [patron_service_1.PatronService],

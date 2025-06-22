@@ -34,6 +34,11 @@ export class PatronController {
   async findById(@Param('id') id: string) {
     return this.patronService.findById(id);
   }
+  // 🔹 Get Patron by Admission Number
+  @Get('admission-number/:id')
+  async findByAdmissionNumber(@Param('id') id: string) {
+    return this.patronService.findByAdmissionNumber(id);
+  }
 
   // Search Patrons by Name or Admission Number
   @Get('search/data')

@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CirculationController } from './circulation.controller';
 import { CirculationService } from './circulation.service';
-import { Transaction, TransactionSchema } from './schemas/transaction.schema';
+import { Circulation, CirculationSchema } from './schemas/circulation.schema';
 import { BooksModule } from '../books/books.module';
 import { PatronModule } from 'src/patron/patron.module';
 import { Book, BookSchema } from 'src/books/book.schema';
@@ -12,7 +12,7 @@ import { JwtModule } from '@nestjs/jwt';
 @Module({
   imports: [
     MongooseModule.forFeature([
-      { name: Transaction.name, schema: TransactionSchema },
+      { name: Circulation.name, schema: CirculationSchema },
       {
         name: Book.name,
         schema: BookSchema,

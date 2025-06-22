@@ -16,13 +16,13 @@ exports.CirculationService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
-const transaction_schema_1 = require("./schemas/transaction.schema");
+const circulation_schema_1 = require("./schemas/circulation.schema");
 let CirculationService = class CirculationService {
-    transactionModel;
+    circulationModel;
     bookModel;
     patronModel;
-    constructor(transactionModel, bookModel, patronModel) {
-        this.transactionModel = transactionModel;
+    constructor(circulationModel, bookModel, patronModel) {
+        this.circulationModel = circulationModel;
         this.bookModel = bookModel;
         this.patronModel = patronModel;
     }
@@ -32,19 +32,21 @@ let CirculationService = class CirculationService {
             this.bookModel.findById(bookId),
             this.patronModel.findById(patronId),
         ]);
-        if (!book)
-            throw new common_1.NotFoundException('Book not found');
-        if (!patron)
-            throw new common_1.NotFoundException('Patron not found');
+        if (!book) {
+            throw new common_1.NotFoundException(`Book with ID ${bookId} not found`);
+        }
+        if (!patron) {
+            throw new common_1.NotFoundException(`Patron with ID ${patronId} not found`);
+        }
         if (book.status !== 'available') {
-            throw new common_1.ConflictException('Book is not available for issue');
+            throw new common_1.ConflictException(`Book "${book.title}" is not available for issue`);
         }
         const issueDate = new Date();
-        const dueDate = new Date();
+        const dueDate = new Date(issueDate);
         dueDate.setDate(dueDate.getDate() + 14);
-        const transaction = new this.transactionModel({
-            book: bookId,
-            patron: patronId,
+        const circulation = new this.circulationModel({
+            book: new mongoose_2.Types.ObjectId(bookId),
+            patron: new mongoose_2.Types.ObjectId(patronId),
             issueDate,
             dueDate,
             status: 'issued',
@@ -53,46 +55,55 @@ let CirculationService = class CirculationService {
         book.status = 'issued';
         book.currentHolder = patronId;
         book.lastIssueDate = issueDate;
-        book.totalIssues += 1;
-        patron.currentBooksIssued += 1;
-        patron.totalBooksIssued += 1;
-        await Promise.all([transaction.save(), book.save(), patron.save()]);
-        return transaction;
+        book.totalIssues = (book.totalIssues || 0) + 1;
+        patron.currentBooksIssued = (patron.currentBooksIssued || 0) + 1;
+        patron.totalBooksIssued = (patron.totalBooksIssued || 0) + 1;
+        await Promise.all([circulation.save(), book.save(), patron.save()]);
+        return {
+            message: `Book "${book.title}" successfully issued to ${patron.name}`,
+            circulationId: circulation._id,
+            dueDate: circulation.dueDate,
+        };
     }
     async returnBook(returnBookDto, staffId) {
-        const { bookId, condition = 'good' } = returnBookDto;
-        const transaction = await this.transactionModel
-            .findOne({
-            book: bookId,
+        const { bookId } = returnBookDto;
+        const transaction = await this.circulationModel.findOne({
+            book: new mongoose_2.Types.ObjectId(bookId),
             status: 'issued',
-        })
-            .populate('book patron');
-        if (!transaction)
+        });
+        if (!transaction) {
             throw new common_1.NotFoundException('No active issue found for this book');
-        const returnDate = new Date();
+        }
+        const book = await this.bookModel.findById(bookId);
+        if (!book) {
+            throw new common_1.NotFoundException(`Book with ID ${bookId} not found`);
+        }
+        const patron = await this.patronModel.findById(transaction.patron);
+        if (!patron) {
+            throw new common_1.NotFoundException(`Patron with ID ${transaction.patron} not found`);
+        }
         let fine = 0;
-        if (returnDate > transaction.dueDate) {
-            const daysOverdue = Math.ceil((returnDate.getTime() - transaction.dueDate.getTime()) /
+        if (transaction.dueDate < new Date()) {
+            const daysOverdue = Math.ceil((new Date().getTime() - transaction.dueDate.getTime()) /
                 (1000 * 60 * 60 * 24));
             fine = daysOverdue * 2;
         }
-        transaction.returnDate = returnDate;
-        transaction.status = 'returned';
-        transaction.fine = fine;
-        transaction.notes = `Returned in ${condition} condition by ${staffId}`;
-        const book = transaction.book;
         book.status = 'available';
-        book.currentHolder = null;
-        const patron = transaction.patron;
         patron.currentBooksIssued -= 1;
-        if (fine > 0)
-            patron.finesDue += fine;
-        await Promise.all([transaction.save(), book.save(), patron.save()]);
-        return transaction;
+        transaction.status = 'returned';
+        transaction.returnDate = new Date();
+        transaction.fine = fine;
+        transaction.notes = `Returned by ${staffId}`;
+        await Promise.all([book.save(), patron.save(), transaction.save()]);
+        return {
+            message: `Book "${book.title}" successfully returned by ${patron.name}`,
+            fine,
+            transactionId: transaction._id,
+        };
     }
     async renewBook(renewBookDto, staffId) {
         const { bookId } = renewBookDto;
-        const transaction = await this.transactionModel.findOne({
+        const transaction = await this.circulationModel.findOne({
             book: bookId,
             status: 'issued',
         });
@@ -109,7 +120,7 @@ let CirculationService = class CirculationService {
         return transaction;
     }
     async getOverdueBooks() {
-        return this.transactionModel
+        return this.circulationModel
             .find({
             status: 'issued',
             dueDate: { $lt: new Date() },
@@ -117,7 +128,7 @@ let CirculationService = class CirculationService {
             .populate('book patron');
     }
     async getPatronBooks(patronId) {
-        return this.transactionModel
+        return this.circulationModel
             .find({
             patron: patronId,
             status: 'issued',
@@ -125,7 +136,7 @@ let CirculationService = class CirculationService {
             .populate('book');
     }
     async calculatePatronFines(patronId) {
-        const transactions = await this.transactionModel.find({
+        const transactions = await this.circulationModel.find({
             patron: patronId,
             status: 'issued',
             dueDate: { $lt: new Date() },
@@ -139,7 +150,7 @@ let CirculationService = class CirculationService {
 exports.CirculationService = CirculationService;
 exports.CirculationService = CirculationService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, mongoose_1.InjectModel)(transaction_schema_1.Transaction.name)),
+    __param(0, (0, mongoose_1.InjectModel)(circulation_schema_1.Circulation.name)),
     __param(1, (0, mongoose_1.InjectModel)('Book')),
     __param(2, (0, mongoose_1.InjectModel)('Patron')),
     __metadata("design:paramtypes", [mongoose_2.Model,

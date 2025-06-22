@@ -5,7 +5,4 @@ export class ReturnBookDto {
   @IsMongoId()
   bookId: string;
 
-  @IsOptional()
-  @IsString()
-  condition?: string;
 }

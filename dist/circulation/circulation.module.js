@@ -11,7 +11,7 @@ const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const circulation_controller_1 = require("./circulation.controller");
 const circulation_service_1 = require("./circulation.service");
-const transaction_schema_1 = require("./schemas/transaction.schema");
+const circulation_schema_1 = require("./schemas/circulation.schema");
 const books_module_1 = require("../books/books.module");
 const patron_module_1 = require("../patron/patron.module");
 const book_schema_1 = require("../books/book.schema");
@@ -24,7 +24,7 @@ exports.CirculationModule = CirculationModule = __decorate([
     (0, common_1.Module)({
         imports: [
             mongoose_1.MongooseModule.forFeature([
-                { name: transaction_schema_1.Transaction.name, schema: transaction_schema_1.TransactionSchema },
+                { name: circulation_schema_1.Circulation.name, schema: circulation_schema_1.CirculationSchema },
                 {
                     name: book_schema_1.Book.name,
                     schema: book_schema_1.BookSchema,

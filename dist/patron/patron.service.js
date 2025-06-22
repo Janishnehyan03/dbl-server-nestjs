@@ -16,11 +16,14 @@ exports.PatronService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
+const circulation_schema_1 = require("../circulation/schemas/circulation.schema");
 const patron_schema_1 = require("./patron.schema");
 let PatronService = class PatronService {
     patronModel;
-    constructor(patronModel) {
+    circulationModel;
+    constructor(patronModel, circulationModel) {
         this.patronModel = patronModel;
+        this.circulationModel = circulationModel;
     }
     async createBulk(patrons) {
         try {
@@ -48,10 +51,38 @@ let PatronService = class PatronService {
         const patron = await this.patronModel
             .findById(id)
             .populate(['section', 'division', 'department', 'class', 'role'])
+            .lean()
             .exec();
-        if (!patron)
+        if (!patron) {
             throw new common_1.NotFoundException(`Patron with ID ${id} not found.`);
-        return patron;
+        }
+        const circulations = await this.circulationModel
+            .find({ patron: id })
+            .populate('book')
+            .sort({ issueDate: -1 })
+            .exec();
+        return {
+            ...patron,
+            circulations,
+        };
+    }
+    async findByAdmissionNumber(admissionNumber) {
+        const patron = await this.patronModel
+            .findOne({ admissionNumber })
+            .populate(['section', 'division', 'department', 'class', 'role'])
+            .exec();
+        if (!patron) {
+            throw new common_1.NotFoundException(`Patron with admission number ${admissionNumber} not found.`);
+        }
+        const circulations = await this.circulationModel
+            .find({ patron: patron._id, status: 'issued' })
+            .populate('book')
+            .sort({ issueDate: -1 })
+            .exec();
+        return {
+            ...patron,
+            circulations,
+        };
     }
     async update(id, updateData) {
         const updatedPatron = await this.patronModel
@@ -99,6 +130,8 @@ exports.PatronService = PatronService;
 exports.PatronService = PatronService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(patron_schema_1.Patron.name)),
-    __metadata("design:paramtypes", [mongoose_2.Model])
+    __param(1, (0, mongoose_1.InjectModel)(circulation_schema_1.Circulation.name)),
+    __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model])
 ], PatronService);
 //# sourceMappingURL=patron.service.js.map

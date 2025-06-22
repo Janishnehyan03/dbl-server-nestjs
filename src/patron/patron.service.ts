@@ -5,16 +5,20 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Schema as MongooseSchema } from 'mongoose';
+import { Model } from 'mongoose';
+import {
+  Circulation,
+  CirculationDocument,
+} from '../circulation/schemas/circulation.schema';
 import { Patron, PatronDocument } from './patron.schema';
 
 @Injectable()
 export class PatronService {
   constructor(
-    @InjectModel(Patron.name)
-    private readonly patronModel: Model<PatronDocument>,
+    @InjectModel(Patron.name) private patronModel: Model<PatronDocument>,
+    @InjectModel(Circulation.name)
+    private circulationModel: Model<CirculationDocument>, // <- this is causing the issue
   ) {}
-
   // 🔹 Bulk Insert Patrons (Insert Many)
   async createBulk(patrons: {
     type: string;
@@ -46,14 +50,54 @@ export class PatronService {
     return patrons;
   }
 
-  // 🔹 Find Patron by ID
   async findById(id: string): Promise<Patron> {
     const patron = await this.patronModel
       .findById(id)
       .populate(['section', 'division', 'department', 'class', 'role'])
+      .lean() // use lean() for faster performance if you just want plain JS objects
       .exec();
-    if (!patron) throw new NotFoundException(`Patron with ID ${id} not found.`);
-    return patron;
+
+    if (!patron) {
+      throw new NotFoundException(`Patron with ID ${id} not found.`);
+    }
+
+    // 🔹 Fetch circulation records related to this patron
+    const circulations = await this.circulationModel
+      .find({ patron: id })
+      .populate('book') // include book details
+      .sort({ issueDate: -1 }) // latest issued first
+      .exec();
+
+    return {
+      ...patron,
+      circulations,
+    } as any; // optionally type-cast if you're extending Patron with new field
+  }
+
+  // 🔹 Find Patron by Admission Number
+  async findByAdmissionNumber(admissionNumber: string): Promise<Patron> {
+    const patron = await this.patronModel
+      .findOne({ admissionNumber })
+      .populate(['section', 'division', 'department', 'class', 'role'])
+      .exec();
+
+    if (!patron) {
+      throw new NotFoundException(
+        `Patron with admission number ${admissionNumber} not found.`,
+      );
+    }
+
+    // 🔹 Fetch circulation records related to this patron
+    const circulations = await this.circulationModel
+      .find({ patron: patron._id,status: 'issued' }) // only issued books
+      .populate('book') // include book details
+      .sort({ issueDate: -1 }) // latest issued first
+      .exec();
+
+    return {
+      ...patron,
+      circulations,
+    } as any; // optionally type-cast if you're extending Patron with new field
   }
 
   // 🔹 Update Patron by ID

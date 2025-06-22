@@ -18,15 +18,12 @@ export class CirculationController {
 
   @Post('return')
   async returnBook(@Body() returnBookDto: ReturnBookDto, @GetUser() user: any) {
-    return this.circulationService.returnBook(
-      returnBookDto,
-      user._id.toString(),
-    );
+    return this.circulationService.returnBook(returnBookDto, user._id);
   }
 
   @Post('renew')
   async renewBook(@Body() renewBookDto: RenewBookDto, @GetUser() user: any) {
-    return this.circulationService.renewBook(renewBookDto, user._id.toString());
+    return this.circulationService.renewBook(renewBookDto, user._id);
   }
 
   @Get('overdue')

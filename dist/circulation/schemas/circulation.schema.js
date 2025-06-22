@@ -9,10 +9,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TransactionSchema = exports.Transaction = void 0;
+exports.CirculationSchema = exports.Circulation = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
-let Transaction = class Transaction {
+let Circulation = class Circulation {
     book;
     patron;
     issueDate;
@@ -24,49 +24,49 @@ let Transaction = class Transaction {
     createdBy;
     notes;
 };
-exports.Transaction = Transaction;
+exports.Circulation = Circulation;
 __decorate([
     (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'Book', required: true }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
-], Transaction.prototype, "book", void 0);
+], Circulation.prototype, "book", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'Patron', required: true }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
-], Transaction.prototype, "patron", void 0);
+], Circulation.prototype, "patron", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true, default: Date.now }),
     __metadata("design:type", Date)
-], Transaction.prototype, "issueDate", void 0);
+], Circulation.prototype, "issueDate", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", Date)
-], Transaction.prototype, "dueDate", void 0);
+], Circulation.prototype, "dueDate", void 0);
 __decorate([
     (0, mongoose_1.Prop)(),
     __metadata("design:type", Date)
-], Transaction.prototype, "returnDate", void 0);
+], Circulation.prototype, "returnDate", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ enum: ['issued', 'returned', 'overdue', 'lost'], default: 'issued' }),
     __metadata("design:type", String)
-], Transaction.prototype, "status", void 0);
+], Circulation.prototype, "status", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ default: 0 }),
     __metadata("design:type", Number)
-], Transaction.prototype, "renewals", void 0);
+], Circulation.prototype, "renewals", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ default: 0 }),
     __metadata("design:type", Number)
-], Transaction.prototype, "fine", void 0);
+], Circulation.prototype, "fine", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'User' }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
-], Transaction.prototype, "createdBy", void 0);
+], Circulation.prototype, "createdBy", void 0);
 __decorate([
     (0, mongoose_1.Prop)(),
     __metadata("design:type", String)
-], Transaction.prototype, "notes", void 0);
-exports.Transaction = Transaction = __decorate([
+], Circulation.prototype, "notes", void 0);
+exports.Circulation = Circulation = __decorate([
     (0, mongoose_1.Schema)({ timestamps: true })
-], Transaction);
-exports.TransactionSchema = mongoose_1.SchemaFactory.createForClass(Transaction);
-//# sourceMappingURL=transaction.schema.js.map
+], Circulation);
+exports.CirculationSchema = mongoose_1.SchemaFactory.createForClass(Circulation);
+//# sourceMappingURL=circulation.schema.js.map

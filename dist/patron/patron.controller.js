@@ -29,6 +29,9 @@ let PatronController = class PatronController {
     async findById(id) {
         return this.patronService.findById(id);
     }
+    async findByAdmissionNumber(id) {
+        return this.patronService.findByAdmissionNumber(id);
+    }
     async searchPatrons(admissionNumber) {
         return this.patronService.searchPatron(admissionNumber);
     }
@@ -61,6 +64,13 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], PatronController.prototype, "findById", null);
+__decorate([
+    (0, common_1.Get)('admission-number/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], PatronController.prototype, "findByAdmissionNumber", null);
 __decorate([
     (0, common_1.Get)('search/data'),
     __param(0, (0, common_1.Query)('admissionNumber')),

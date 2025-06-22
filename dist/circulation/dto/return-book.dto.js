@@ -13,7 +13,6 @@ exports.ReturnBookDto = void 0;
 const class_validator_1 = require("class-validator");
 class ReturnBookDto {
     bookId;
-    condition;
 }
 exports.ReturnBookDto = ReturnBookDto;
 __decorate([
@@ -21,9 +20,4 @@ __decorate([
     (0, class_validator_1.IsMongoId)(),
     __metadata("design:type", String)
 ], ReturnBookDto.prototype, "bookId", void 0);
-__decorate([
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
-], ReturnBookDto.prototype, "condition", void 0);
 //# sourceMappingURL=return-book.dto.js.map
