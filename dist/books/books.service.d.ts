@@ -10,6 +10,6 @@ export declare class BooksService {
     update(id: string, updateBookDto: Partial<CreateBookDto>): Promise<Book>;
     getNewArrivals(): Promise<Book[]>;
     getBooksByCategory(categoryId: string): Promise<Book[]>;
-    searchBooks(searchText: string): Promise<Book[]>;
+    searchBooks(search: string): Promise<Book[]>;
     remove(id: string): Promise<void>;
 }

@@ -38,7 +38,8 @@ let BooksService = class BooksService {
             .findById(id)
             .populate('authors')
             .populate('categories')
-            .populate('publisher').populate('location')
+            .populate('publisher')
+            .populate('location')
             .populate('language')
             .exec();
         if (!book)
@@ -80,27 +81,43 @@ let BooksService = class BooksService {
             .populate('authors')
             .exec();
     }
-    async searchBooks(searchText) {
-        if (!searchText?.trim()) {
-            throw new common_1.BadRequestException('Search text is required.');
+    async searchBooks(search) {
+        if (!search?.trim()) {
+            throw new common_1.BadRequestException('Search parameter is required.');
         }
-        const regex = new RegExp(searchText.trim(), 'i');
-        const books = await this.bookModel
-            .find({
-            $or: [
-                { title: regex },
-                { accNumber: regex },
-                { callNumber: regex },
-                { isbn: regex },
-                { 'authors.name': regex },
-            ],
-        })
-            .populate(['publisher', 'categories', 'authors'])
-            .exec();
-        if (!books.length) {
-            throw new common_1.NotFoundException('No books found matching the search criteria.');
+        const [field, ...valueParts] = search.split(':');
+        const value = valueParts.join(':').trim();
+        if (!field || !value) {
+            throw new common_1.BadRequestException('Search parameter must be in the format "field:value".');
         }
-        return books;
+        const allowedFields = ['author', 'title', 'isbn', 'accNumber', 'callNumber'];
+        if (!allowedFields.includes(field)) {
+            throw new common_1.BadRequestException(`Search by field "${field}" is not allowed. Allowed fields: ${allowedFields.join(', ')}.`);
+        }
+        if (field === 'author') {
+            const books = await this.bookModel
+                .find()
+                .populate({
+                path: "authors",
+                match: { name: { $regex: value, $options: "i" } },
+            })
+                .populate(['publisher', 'categories'])
+                .exec();
+            return books.filter((book) => Array.isArray(book.authors) && book.authors.length > 0);
+        }
+        else {
+            const query = {};
+            if (['title'].includes(field)) {
+                query[field] = { $regex: value, $options: "i" };
+            }
+            else {
+                query[field] = value;
+            }
+            return this.bookModel
+                .find(query)
+                .populate(['publisher', 'categories', 'authors'])
+                .exec();
+        }
     }
     async remove(id) {
         const result = await this.bookModel.findByIdAndDelete(id).exec();

@@ -30,8 +30,9 @@ export class BooksService {
       .findById(id)
       .populate('authors')
       .populate('categories')
-      .populate('publisher').populate('location')
-      .populate('language') 
+      .populate('publisher')
+      .populate('location')
+      .populate('language')
       .exec();
 
     if (!book) throw new NotFoundException('Book not found');
@@ -80,32 +81,62 @@ export class BooksService {
       .exec();
   }
 
-  async searchBooks(searchText: string): Promise<Book[]> {
-    if (!searchText?.trim()) {
-      throw new BadRequestException('Search text is required.');
+  async searchBooks(search: string): Promise<Book[]> {
+    // Example request:
+    // GET /books/search/data?search=author:asimov
+
+    if (!search?.trim()) {
+      throw new BadRequestException('Search parameter is required.');
     }
 
-    const regex = new RegExp(searchText.trim(), 'i'); // Case-insensitive regex
-    const books = await this.bookModel
-      .find({
-        $or: [
-          { title: regex },
-          { accNumber: regex },
-          { callNumber: regex },
-          { isbn: regex }, // Consider adding ISBN if relevant
-          { 'authors.name': regex }, // Search by author names if needed
-        ],
-      })
-      .populate(['publisher', 'categories', 'authors'])
-      .exec();
+    // Parse the search string, e.g., "author:asimov"
+    const [field, ...valueParts] = search.split(':');
+    const value = valueParts.join(':').trim();
 
-    if (!books.length) {
-      throw new NotFoundException(
-        'No books found matching the search criteria.',
+    if (!field || !value) {
+      throw new BadRequestException(
+        'Search parameter must be in the format "field:value".',
       );
     }
 
-    return books;
+    // Allowed fields
+    const allowedFields = ['author', 'title', 'isbn', 'accNumber', 'callNumber'];
+    if (!allowedFields.includes(field)) {
+      throw new BadRequestException(
+        `Search by field "${field}" is not allowed. Allowed fields: ${allowedFields.join(', ')}.`
+      );
+    }
+
+    if (field === 'author') {
+      // Search books whose authors' names match the value (case-insensitive)
+      const books = await this.bookModel
+        .find()
+        .populate({
+          path: "authors",
+          match: { name: { $regex: value, $options: "i" } },
+        })
+        .populate(['publisher', 'categories'])
+        .exec();
+
+      // Filter out books where no authors matched
+      return books.filter(
+        (book) => Array.isArray(book.authors) && book.authors.length > 0
+      );
+    } else {
+      // For other fields, search directly on the Book model
+      const query: any = {};
+      // Use regex for partial/case-insensitive match except for isbn, accNumber, callNumber
+      if (['title'].includes(field)) {
+        query[field] = { $regex: value, $options: "i" };
+      } else {
+        query[field] = value;
+      }
+
+      return this.bookModel
+        .find(query)
+        .populate(['publisher', 'categories', 'authors'])
+        .exec();
+    }
   }
 
   async remove(id: string): Promise<void> {
