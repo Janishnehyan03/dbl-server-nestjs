@@ -4,10 +4,14 @@ import { Model } from 'mongoose';
 import { Category } from './category.schema';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { Book, BookDocument } from 'src/books/book.schema';
 
 @Injectable()
 export class CategoriesService {
-  constructor(@InjectModel(Category.name) private categoryModel: Model<Category>) {}
+  constructor(
+    @InjectModel(Category.name) private categoryModel: Model<Category>,
+    @InjectModel(Book.name) private bookModel: Model<BookDocument>, // Assuming 'Book' is the name of the book model
+  ) {}
 
   async create(dto: CreateCategoryDto): Promise<Category> {
     return this.categoryModel.create(dto);
@@ -23,8 +27,25 @@ export class CategoriesService {
     return category;
   }
 
+  // category books
+  async findBooksInCategory(id: string): Promise<any> {
+    const category = await this.categoryModel.findById(id);
+    let books: BookDocument[] = [];
+    if (category) {
+      books = await this.bookModel
+        .find({ categories: category._id })
+        .populate('categories');
+    }
+    if (!books || books.length === 0) {
+      throw new NotFoundException('No books found in this category');
+    }
+    return {books, category};
+  }
+
   async update(id: string, dto: UpdateCategoryDto): Promise<Category> {
-    const category = await this.categoryModel.findByIdAndUpdate(id, dto, { new: true });
+    const category = await this.categoryModel.findByIdAndUpdate(id, dto, {
+      new: true,
+    });
     if (!category) throw new NotFoundException('Category not found');
     return category;
   }

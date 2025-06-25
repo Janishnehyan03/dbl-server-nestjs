@@ -7,6 +7,7 @@ export declare class CategoriesController {
     create(createCategoryDto: CreateCategoryDto): Promise<import("./category.schema").Category>;
     findAll(): Promise<import("./category.schema").Category[]>;
     findOne(id: string): Promise<import("./category.schema").Category>;
+    findBooksInCategory(id: string): Promise<any>;
     update(id: string, updateCategoryDto: UpdateCategoryDto): Promise<import("./category.schema").Category>;
     remove(id: string): Promise<void>;
 }

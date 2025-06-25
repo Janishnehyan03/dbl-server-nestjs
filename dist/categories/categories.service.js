@@ -17,10 +17,13 @@ const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const category_schema_1 = require("./category.schema");
+const book_schema_1 = require("../books/book.schema");
 let CategoriesService = class CategoriesService {
     categoryModel;
-    constructor(categoryModel) {
+    bookModel;
+    constructor(categoryModel, bookModel) {
         this.categoryModel = categoryModel;
+        this.bookModel = bookModel;
     }
     async create(dto) {
         return this.categoryModel.create(dto);
@@ -34,8 +37,23 @@ let CategoriesService = class CategoriesService {
             throw new common_1.NotFoundException('Category not found');
         return category;
     }
+    async findBooksInCategory(id) {
+        const category = await this.categoryModel.findById(id);
+        let books = [];
+        if (category) {
+            books = await this.bookModel
+                .find({ categories: category._id })
+                .populate('categories');
+        }
+        if (!books || books.length === 0) {
+            throw new common_1.NotFoundException('No books found in this category');
+        }
+        return { books, category };
+    }
     async update(id, dto) {
-        const category = await this.categoryModel.findByIdAndUpdate(id, dto, { new: true });
+        const category = await this.categoryModel.findByIdAndUpdate(id, dto, {
+            new: true,
+        });
         if (!category)
             throw new common_1.NotFoundException('Category not found');
         return category;
@@ -50,6 +68,8 @@ exports.CategoriesService = CategoriesService;
 exports.CategoriesService = CategoriesService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(category_schema_1.Category.name)),
-    __metadata("design:paramtypes", [mongoose_2.Model])
+    __param(1, (0, mongoose_1.InjectModel)(book_schema_1.Book.name)),
+    __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model])
 ], CategoriesService);
 //# sourceMappingURL=categories.service.js.map

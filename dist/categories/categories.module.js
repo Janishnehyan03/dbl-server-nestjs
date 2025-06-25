@@ -12,6 +12,7 @@ const mongoose_1 = require("@nestjs/mongoose");
 const categories_service_1 = require("./categories.service");
 const categories_controller_1 = require("./categories.controller");
 const category_schema_1 = require("./category.schema");
+const book_schema_1 = require("../books/book.schema");
 let CategoriesModule = class CategoriesModule {
 };
 exports.CategoriesModule = CategoriesModule;
@@ -20,6 +21,7 @@ exports.CategoriesModule = CategoriesModule = __decorate([
         imports: [
             mongoose_1.MongooseModule.forFeature([
                 { name: category_schema_1.Category.name, schema: category_schema_1.CategorySchema },
+                { name: book_schema_1.Book.name, schema: book_schema_1.BookSchema },
             ]),
         ],
         controllers: [categories_controller_1.CategoriesController],
