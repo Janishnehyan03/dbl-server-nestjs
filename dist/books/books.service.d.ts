@@ -6,6 +6,7 @@ export declare class BooksService {
     constructor(bookModel: Model<BookDocument>);
     create(createBookDto: CreateBookDto): Promise<Book>;
     findAll(): Promise<Book[]>;
+    totalBooks(): Promise<number>;
     findOne(id: string): Promise<Book>;
     update(id: string, updateBookDto: Partial<CreateBookDto>): Promise<Book>;
     getNewArrivals(): Promise<Book[]>;

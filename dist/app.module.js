@@ -31,6 +31,7 @@ const publishers_module_1 = require("./publishers/publishers.module");
 const quotes_module_1 = require("./quotes/quotes.module");
 const role_module_1 = require("./role/role.module");
 const sections_module_1 = require("./sections/sections.module");
+const dashboard_module_1 = require("./dashboard/dashboard.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -64,6 +65,7 @@ exports.AppModule = AppModule = __decorate([
             patron_module_1.PatronModule,
             books_module_1.BooksModule,
             circulation_module_1.CirculationModule,
+            dashboard_module_1.DashboardModule,
             jwt_1.JwtModule.register({
                 secret: process.env.JWT_SECRET,
                 signOptions: { algorithm: 'HS256' },

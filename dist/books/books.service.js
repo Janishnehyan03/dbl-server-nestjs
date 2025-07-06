@@ -33,6 +33,9 @@ let BooksService = class BooksService {
             .populate('authors')
             .exec();
     }
+    async totalBooks() {
+        return this.bookModel.countDocuments().exec();
+    }
     async findOne(id) {
         const book = await this.bookModel
             .findById(id)
@@ -90,7 +93,13 @@ let BooksService = class BooksService {
         if (!field || !value) {
             throw new common_1.BadRequestException('Search parameter must be in the format "field:value".');
         }
-        const allowedFields = ['author', 'title', 'isbn', 'accNumber', 'callNumber'];
+        const allowedFields = [
+            'author',
+            'title',
+            'isbn',
+            'accNumber',
+            'callNumber',
+        ];
         if (!allowedFields.includes(field)) {
             throw new common_1.BadRequestException(`Search by field "${field}" is not allowed. Allowed fields: ${allowedFields.join(', ')}.`);
         }
@@ -98,8 +107,8 @@ let BooksService = class BooksService {
             const books = await this.bookModel
                 .find()
                 .populate({
-                path: "authors",
-                match: { name: { $regex: value, $options: "i" } },
+                path: 'authors',
+                match: { name: { $regex: value, $options: 'i' } },
             })
                 .populate(['publisher', 'categories'])
                 .exec();
@@ -108,7 +117,7 @@ let BooksService = class BooksService {
         else {
             const query = {};
             if (['title'].includes(field)) {
-                query[field] = { $regex: value, $options: "i" };
+                query[field] = { $regex: value, $options: 'i' };
             }
             else {
                 query[field] = value;

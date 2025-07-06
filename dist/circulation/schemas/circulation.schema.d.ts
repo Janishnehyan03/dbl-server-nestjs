@@ -8,7 +8,6 @@ export declare class Circulation {
     returnDate: Date;
     status: string;
     renewals: number;
-    fine: number;
     createdBy: Types.ObjectId;
     notes: string;
 }

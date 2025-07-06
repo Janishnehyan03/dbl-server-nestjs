@@ -22,6 +22,7 @@ import { PublishersModule } from './publishers/publishers.module';
 import { QuotesModule } from './quotes/quotes.module';
 import { RoleModule } from './role/role.module';
 import { SectionsModule } from './sections/sections.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { SectionsModule } from './sections/sections.module';
     PatronModule,
     BooksModule,
     CirculationModule,
+    DashboardModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       signOptions: { algorithm: 'HS256' },

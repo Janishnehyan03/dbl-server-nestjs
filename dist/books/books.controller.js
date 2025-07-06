@@ -27,6 +27,9 @@ let BooksController = class BooksController {
     findAll() {
         return this.booksService.findAll();
     }
+    getTotalBooks() {
+        return this.booksService.totalBooks();
+    }
     findOne(id) {
         return this.booksService.findOne(id);
     }
@@ -60,6 +63,12 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], BooksController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)('total'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], BooksController.prototype, "getTotalBooks", null);
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),

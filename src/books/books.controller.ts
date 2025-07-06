@@ -24,6 +24,11 @@ export class BooksController {
   findAll() {
     return this.booksService.findAll();
   }
+  
+  @Get('total')
+  getTotalBooks() {
+    return this.booksService.totalBooks();
+  }
 
   @Get(':id')
   findOne(@Param('id') id: string) {

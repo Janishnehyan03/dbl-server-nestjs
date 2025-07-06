@@ -20,7 +20,6 @@ let Circulation = class Circulation {
     returnDate;
     status;
     renewals;
-    fine;
     createdBy;
     notes;
 };
@@ -53,10 +52,6 @@ __decorate([
     (0, mongoose_1.Prop)({ default: 0 }),
     __metadata("design:type", Number)
 ], Circulation.prototype, "renewals", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ default: 0 }),
-    __metadata("design:type", Number)
-], Circulation.prototype, "fine", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'User' }),
     __metadata("design:type", mongoose_2.Types.ObjectId)

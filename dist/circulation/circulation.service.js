@@ -92,7 +92,6 @@ let CirculationService = class CirculationService {
         patron.currentBooksIssued -= 1;
         transaction.status = 'returned';
         transaction.returnDate = new Date();
-        transaction.fine = fine;
         transaction.notes = `Returned by ${staffId}`;
         await Promise.all([book.save(), patron.save(), transaction.save()]);
         return {

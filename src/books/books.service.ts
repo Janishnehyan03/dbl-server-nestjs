@@ -24,7 +24,9 @@ export class BooksService {
       .populate('authors')
       .exec();
   }
-
+  async totalBooks(): Promise<number> {
+    return this.bookModel.countDocuments().exec();
+  }
   async findOne(id: string): Promise<Book> {
     const book = await this.bookModel
       .findById(id)
@@ -100,10 +102,16 @@ export class BooksService {
     }
 
     // Allowed fields
-    const allowedFields = ['author', 'title', 'isbn', 'accNumber', 'callNumber'];
+    const allowedFields = [
+      'author',
+      'title',
+      'isbn',
+      'accNumber',
+      'callNumber',
+    ];
     if (!allowedFields.includes(field)) {
       throw new BadRequestException(
-        `Search by field "${field}" is not allowed. Allowed fields: ${allowedFields.join(', ')}.`
+        `Search by field "${field}" is not allowed. Allowed fields: ${allowedFields.join(', ')}.`,
       );
     }
 
@@ -112,22 +120,22 @@ export class BooksService {
       const books = await this.bookModel
         .find()
         .populate({
-          path: "authors",
-          match: { name: { $regex: value, $options: "i" } },
+          path: 'authors',
+          match: { name: { $regex: value, $options: 'i' } },
         })
         .populate(['publisher', 'categories'])
         .exec();
 
       // Filter out books where no authors matched
       return books.filter(
-        (book) => Array.isArray(book.authors) && book.authors.length > 0
+        (book) => Array.isArray(book.authors) && book.authors.length > 0,
       );
     } else {
       // For other fields, search directly on the Book model
       const query: any = {};
       // Use regex for partial/case-insensitive match except for isbn, accNumber, callNumber
       if (['title'].includes(field)) {
-        query[field] = { $regex: value, $options: "i" };
+        query[field] = { $regex: value, $options: 'i' };
       } else {
         query[field] = value;
       }

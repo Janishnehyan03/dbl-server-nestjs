@@ -26,9 +26,6 @@ export class Circulation {
   @Prop({ default: 0 })
   renewals: number;
 
-  @Prop({ default: 0 })
-  fine: number;
-
   @Prop({ type: Types.ObjectId, ref: 'User' })
   createdBy: Types.ObjectId;
 
