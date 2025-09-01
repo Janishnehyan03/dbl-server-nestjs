@@ -17,10 +17,13 @@ const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const book_schema_1 = require("./book.schema");
+const circulation_schema_1 = require("../circulation/schemas/circulation.schema");
 let BooksService = class BooksService {
     bookModel;
-    constructor(bookModel) {
+    circulationModel;
+    constructor(bookModel, circulationModel) {
         this.bookModel = bookModel;
+        this.circulationModel = circulationModel;
     }
     async create(createBookDto) {
         return this.bookModel.create(createBookDto);
@@ -47,7 +50,18 @@ let BooksService = class BooksService {
             .exec();
         if (!book)
             throw new common_1.NotFoundException('Book not found');
-        return book;
+        const circulation = await this.circulationModel
+            .findOne({ book: new mongoose_2.default.Types.ObjectId(id), status: 'issued' })
+            .populate({
+            path: 'patron',
+            select: 'name admissionNumber section',
+            populate: {
+                path: 'section',
+                select: 'name ',
+            },
+        })
+            .exec();
+        return { ...book.toObject(), circulation };
     }
     async update(id, updateBookDto) {
         const book = await this.bookModel.findByIdAndUpdate(id, updateBookDto, {
@@ -138,6 +152,8 @@ exports.BooksService = BooksService;
 exports.BooksService = BooksService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(book_schema_1.Book.name)),
-    __metadata("design:paramtypes", [mongoose_2.Model])
+    __param(1, (0, mongoose_1.InjectModel)(circulation_schema_1.Circulation.name)),
+    __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model])
 ], BooksService);
 //# sourceMappingURL=books.service.js.map

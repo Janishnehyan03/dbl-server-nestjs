@@ -18,6 +18,7 @@ const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const circulation_schema_1 = require("../circulation/schemas/circulation.schema");
 const patron_schema_1 = require("./patron.schema");
+const common_2 = require("../common");
 let PatronService = class PatronService {
     patronModel;
     circulationModel;
@@ -57,19 +58,41 @@ let PatronService = class PatronService {
             throw new common_1.NotFoundException(`Patron with ID ${id} not found.`);
         }
         const circulations = await this.circulationModel
-            .find({ patron: id })
+            .find({ patron: new mongoose_2.Types.ObjectId(id) })
             .populate('book')
             .sort({ issueDate: -1 })
+            .lean()
             .exec();
+        let totalFine = 0;
+        const circulationsWithFines = circulations.map((txn) => {
+            let fine = 0;
+            if (txn.status === 'issued' && txn.dueDate < new Date()) {
+                const daysOverdue = Math.ceil((Date.now() - new Date(txn.dueDate).getTime()) /
+                    (1000 * 60 * 60 * 24));
+                fine = daysOverdue * common_2.FINE.FINE_PER_DAY;
+            }
+            totalFine += fine;
+            return {
+                ...txn,
+                fine,
+                isOverdue: fine > 0,
+            };
+        });
+        const totalBooksIssued = circulations.length;
+        const currentBooksIssued = circulations.filter((c) => c.status === 'issued').length;
         return {
             ...patron,
-            circulations,
+            circulations: circulationsWithFines,
+            totalFine,
+            totalBooksIssued,
+            currentBooksIssued,
         };
     }
     async findByAdmissionNumber(admissionNumber) {
         const patron = await this.patronModel
             .findOne({ admissionNumber })
             .populate(['section', 'division', 'department', 'class', 'role'])
+            .lean()
             .exec();
         if (!patron) {
             throw new common_1.NotFoundException(`Patron with admission number ${admissionNumber} not found.`);
@@ -78,6 +101,7 @@ let PatronService = class PatronService {
             .find({ patron: patron._id, status: 'issued' })
             .populate('book')
             .sort({ issueDate: -1 })
+            .lean()
             .exec();
         return {
             ...patron,

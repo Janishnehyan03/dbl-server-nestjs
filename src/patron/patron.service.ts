@@ -5,12 +5,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import {
   Circulation,
   CirculationDocument,
 } from '../circulation/schemas/circulation.schema';
 import { Patron, PatronDocument } from './patron.schema';
+import { FINE } from 'src/common';
 
 @Injectable()
 export class PatronService {
@@ -50,35 +51,66 @@ export class PatronService {
     return patrons;
   }
 
-  async findById(id: string): Promise<Patron> {
+  async findById(id: string): Promise<any> {
     const patron = await this.patronModel
       .findById(id)
       .populate(['section', 'division', 'department', 'class', 'role'])
-      .lean() // use lean() for faster performance if you just want plain JS objects
+      .lean()
       .exec();
 
     if (!patron) {
       throw new NotFoundException(`Patron with ID ${id} not found.`);
     }
 
-    // 🔹 Fetch circulation records related to this patron
+    // 🔹 Fetch circulation records
     const circulations = await this.circulationModel
-      .find({ patron: id })
-      .populate('book') // include book details
-      .sort({ issueDate: -1 }) // latest issued first
+      .find({ patron: new Types.ObjectId(id) })
+      .populate('book')
+      .sort({ issueDate: -1 })
+      .lean()
       .exec();
+
+    // 🔹 Calculate fines & status
+    let totalFine = 0;
+    const circulationsWithFines = circulations.map((txn) => {
+      let fine = 0;
+      if (txn.status === 'issued' && txn.dueDate < new Date()) {
+        const daysOverdue = Math.ceil(
+          (Date.now() - new Date(txn.dueDate).getTime()) /
+            (1000 * 60 * 60 * 24),
+        );
+        fine = daysOverdue * FINE.FINE_PER_DAY;
+      }
+      totalFine += fine;
+
+      return {
+        ...txn,
+        fine,
+        isOverdue: fine > 0,
+      };
+    });
+
+    // ✅ Fix: calculate book counts
+    const totalBooksIssued = circulations.length; // all transactions (issued + returned)
+    const currentBooksIssued = circulations.filter(
+      (c) => c.status === 'issued',
+    ).length;
 
     return {
       ...patron,
-      circulations,
-    } as any; // optionally type-cast if you're extending Patron with new field
+      circulations: circulationsWithFines,
+      totalFine,
+      totalBooksIssued,
+      currentBooksIssued,
+    };
   }
 
   // 🔹 Find Patron by Admission Number
-  async findByAdmissionNumber(admissionNumber: string): Promise<Patron> {
+  async findByAdmissionNumber(admissionNumber: string): Promise<any> {
     const patron = await this.patronModel
       .findOne({ admissionNumber })
       .populate(['section', 'division', 'department', 'class', 'role'])
+      .lean() // use lean to get a plain JS object for spreading below
       .exec();
 
     if (!patron) {
@@ -87,17 +119,19 @@ export class PatronService {
       );
     }
 
-    // 🔹 Fetch circulation records related to this patron
+    // 🔹 Fetch circulation records related to this patron, only status 'issued'
     const circulations = await this.circulationModel
-      .find({ patron: patron._id,status: 'issued' }) // only issued books
-      .populate('book') // include book details
-      .sort({ issueDate: -1 }) // latest issued first
+      .find({ patron: patron._id, status: 'issued' })
+      .populate('book') // populate book details if needed
+      .sort({ issueDate: -1 })
+      .lean()
       .exec();
 
+    // Attach circulations as a property (not a nested key)
     return {
       ...patron,
-      circulations,
-    } as any; // optionally type-cast if you're extending Patron with new field
+      circulations, // not 'patron.circulations'
+    };
   }
 
   // 🔹 Update Patron by ID

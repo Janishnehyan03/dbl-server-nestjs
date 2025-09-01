@@ -4,13 +4,21 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { Book, BookDocument } from './book.schema';
 import { CreateBookDto } from './dto/create-book.dto';
+import {
+  CirculationDocument,
+  Circulation,
+} from '../circulation/schemas/circulation.schema';
 
 @Injectable()
 export class BooksService {
-  constructor(@InjectModel(Book.name) private bookModel: Model<BookDocument>) {}
+  constructor(
+    @InjectModel(Book.name) private bookModel: Model<BookDocument>,
+    @InjectModel(Circulation.name)
+    private circulationModel: Model<CirculationDocument>,
+  ) {}
 
   async create(createBookDto: CreateBookDto): Promise<Book> {
     return this.bookModel.create(createBookDto);
@@ -27,7 +35,7 @@ export class BooksService {
   async totalBooks(): Promise<number> {
     return this.bookModel.countDocuments().exec();
   }
-  async findOne(id: string): Promise<Book> {
+  async findOne(id: string): Promise<Book & { circulation?: any }> {
     const book = await this.bookModel
       .findById(id)
       .populate('authors')
@@ -38,7 +46,23 @@ export class BooksService {
       .exec();
 
     if (!book) throw new NotFoundException('Book not found');
-    return book;
+
+    // Populate circulation details if the book is issued
+    // Assumes a 'circulation' field referencing a Circulation model
+    // and Circulation has a 'patron' field referencing a Patron model
+    const circulation = await this.circulationModel
+      .findOne({ book: new mongoose.Types.ObjectId(id), status: 'issued' })
+      .populate({
+        path: 'patron',
+        select: 'name admissionNumber section',
+        populate: {
+          path: 'section',
+          select: 'name ', // add other fields as needed
+        },
+      })
+      .exec();
+
+    return { ...book.toObject(), circulation };
   }
 
   async update(

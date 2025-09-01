@@ -17,6 +17,11 @@ const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const circulation_schema_1 = require("./schemas/circulation.schema");
+const common_2 = require("../common");
+const ISSUE_PERIOD_DAYS = common_2.FINE.ISSUE_PERIOD_DAYS;
+const RENEWAL_PERIOD_DAYS = common_2.FINE.RENEWAL_PERIOD_DAYS;
+const MAX_RENEWALS = common_2.FINE.MAX_RENEWALS;
+const FINE_PER_DAY = common_2.FINE.FINE_PER_DAY;
 let CirculationService = class CirculationService {
     circulationModel;
     bookModel;
@@ -32,18 +37,16 @@ let CirculationService = class CirculationService {
             this.bookModel.findById(bookId),
             this.patronModel.findById(patronId),
         ]);
-        if (!book) {
+        if (!book)
             throw new common_1.NotFoundException(`Book with ID ${bookId} not found`);
-        }
-        if (!patron) {
+        if (!patron)
             throw new common_1.NotFoundException(`Patron with ID ${patronId} not found`);
-        }
         if (book.status !== 'available') {
             throw new common_1.ConflictException(`Book "${book.title}" is not available for issue`);
         }
         const issueDate = new Date();
         const dueDate = new Date(issueDate);
-        dueDate.setDate(dueDate.getDate() + 14);
+        dueDate.setDate(dueDate.getDate() + ISSUE_PERIOD_DAYS);
         const circulation = new this.circulationModel({
             book: new mongoose_2.Types.ObjectId(bookId),
             patron: new mongoose_2.Types.ObjectId(patronId),
@@ -75,21 +78,19 @@ let CirculationService = class CirculationService {
             throw new common_1.NotFoundException('No active issue found for this book');
         }
         const book = await this.bookModel.findById(bookId);
-        if (!book) {
+        if (!book)
             throw new common_1.NotFoundException(`Book with ID ${bookId} not found`);
-        }
         const patron = await this.patronModel.findById(transaction.patron);
         if (!patron) {
             throw new common_1.NotFoundException(`Patron with ID ${transaction.patron} not found`);
         }
         let fine = 0;
         if (transaction.dueDate < new Date()) {
-            const daysOverdue = Math.ceil((new Date().getTime() - transaction.dueDate.getTime()) /
-                (1000 * 60 * 60 * 24));
-            fine = daysOverdue * 2;
+            const daysOverdue = Math.ceil((Date.now() - transaction.dueDate.getTime()) / (1000 * 60 * 60 * 24));
+            fine = daysOverdue * FINE_PER_DAY;
         }
         book.status = 'available';
-        patron.currentBooksIssued -= 1;
+        patron.currentBooksIssued = Math.max(0, patron.currentBooksIssued - 1);
         transaction.status = 'returned';
         transaction.returnDate = new Date();
         transaction.notes = `Returned by ${staffId}`;
@@ -108,10 +109,11 @@ let CirculationService = class CirculationService {
         });
         if (!transaction)
             throw new common_1.NotFoundException('No active issue found for this book');
-        if (transaction.renewals >= 2)
+        if (transaction.renewals >= MAX_RENEWALS) {
             throw new common_1.ForbiddenException('Maximum renewals reached');
+        }
         const newDueDate = new Date(transaction.dueDate);
-        newDueDate.setDate(newDueDate.getDate() + 14);
+        newDueDate.setDate(newDueDate.getDate() + RENEWAL_PERIOD_DAYS);
         transaction.dueDate = newDueDate;
         transaction.renewals += 1;
         transaction.notes = `Renewed ${transaction.renewals} time(s) by ${staffId}`;
@@ -141,8 +143,8 @@ let CirculationService = class CirculationService {
             dueDate: { $lt: new Date() },
         });
         return transactions.reduce((total, txn) => {
-            const daysOverdue = Math.ceil((new Date().getTime() - txn.dueDate.getTime()) / (1000 * 60 * 60 * 24));
-            return total + daysOverdue * 2;
+            const daysOverdue = Math.ceil((Date.now() - txn.dueDate.getTime()) / (1000 * 60 * 60 * 24));
+            return total + daysOverdue * FINE_PER_DAY;
         }, 0);
     }
 };

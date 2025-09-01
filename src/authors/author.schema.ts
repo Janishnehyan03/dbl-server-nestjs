@@ -18,14 +18,6 @@ export class Author extends Document {
   @Prop({ trim: true })
   website?: string;
 
-  @Prop({ trim: true })
-  linkedin?: string;
-
-  @Prop({ trim: true })
-  twitter?: string;
-
-  @Prop({ trim: true })
-  facebook?: string;
 
   @Prop({ default: Date.now })
   updatedAt: Date;

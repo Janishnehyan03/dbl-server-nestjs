@@ -5,9 +5,6 @@ export declare class Author extends Document {
     nationality?: string;
     email: string;
     website?: string;
-    linkedin?: string;
-    twitter?: string;
-    facebook?: string;
     updatedAt: Date;
     createdAt: Date;
 }

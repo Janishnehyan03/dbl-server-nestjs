@@ -12,6 +12,14 @@ import { Patron } from 'src/patron/patron.schema';
 import { IssueBookDto } from './dto/issue-book.dto';
 import { ReturnBookDto } from './dto/return-book.dto';
 import { RenewBookDto } from './dto/renew-book.dto';
+import { FINE } from 'src/common';
+
+// ==================== CONFIG CONSTANTS ====================
+const ISSUE_PERIOD_DAYS = FINE.ISSUE_PERIOD_DAYS;
+const RENEWAL_PERIOD_DAYS = FINE.RENEWAL_PERIOD_DAYS;
+const MAX_RENEWALS = FINE.MAX_RENEWALS;
+const FINE_PER_DAY = FINE.FINE_PER_DAY;
+// ==========================================================
 
 @Injectable()
 export class CirculationService {
@@ -29,14 +37,9 @@ export class CirculationService {
       this.patronModel.findById(patronId),
     ]);
 
-    if (!book) {
-      throw new NotFoundException(`Book with ID ${bookId} not found`);
-    }
-
-    if (!patron) {
+    if (!book) throw new NotFoundException(`Book with ID ${bookId} not found`);
+    if (!patron)
       throw new NotFoundException(`Patron with ID ${patronId} not found`);
-    }
-
     if (book.status !== 'available') {
       throw new ConflictException(
         `Book "${book.title}" is not available for issue`,
@@ -45,7 +48,7 @@ export class CirculationService {
 
     const issueDate = new Date();
     const dueDate = new Date(issueDate);
-    dueDate.setDate(dueDate.getDate() + 14); // 2 weeks due period
+    dueDate.setDate(dueDate.getDate() + ISSUE_PERIOD_DAYS);
 
     const circulation = new this.circulationModel({
       book: new Types.ObjectId(bookId),
@@ -82,13 +85,14 @@ export class CirculationService {
       book: new Types.ObjectId(bookId) as any,
       status: 'issued',
     });
+
     if (!transaction) {
       throw new NotFoundException('No active issue found for this book');
     }
+
     const book = await this.bookModel.findById(bookId);
-    if (!book) {
-      throw new NotFoundException(`Book with ID ${bookId} not found`);
-    }
+    if (!book) throw new NotFoundException(`Book with ID ${bookId} not found`);
+
     const patron = await this.patronModel.findById(transaction.patron);
     if (!patron) {
       throw new NotFoundException(
@@ -100,22 +104,18 @@ export class CirculationService {
     let fine = 0;
     if (transaction.dueDate < new Date()) {
       const daysOverdue = Math.ceil(
-        (new Date().getTime() - transaction.dueDate.getTime()) /
-          (1000 * 60 * 60 * 24),
+        (Date.now() - transaction.dueDate.getTime()) / (1000 * 60 * 60 * 24),
       );
-      fine = daysOverdue * 2; // Assuming a fine of $2 per day
+      fine = daysOverdue * FINE_PER_DAY;
     }
 
-    // Update book status
+    // Update book & patron
     book.status = 'available';
-
-    // Update patron's issued books count
-    patron.currentBooksIssued -= 1;
+    patron.currentBooksIssued = Math.max(0, patron.currentBooksIssued - 1);
 
     // Update circulation transaction
     transaction.status = 'returned';
     transaction.returnDate = new Date();
-
     transaction.notes = `Returned by ${staffId}`;
 
     await Promise.all([book.save(), patron.save(), transaction.save()]);
@@ -137,11 +137,12 @@ export class CirculationService {
 
     if (!transaction)
       throw new NotFoundException('No active issue found for this book');
-    if (transaction.renewals >= 2)
+    if (transaction.renewals >= MAX_RENEWALS) {
       throw new ForbiddenException('Maximum renewals reached');
+    }
 
     const newDueDate = new Date(transaction.dueDate);
-    newDueDate.setDate(newDueDate.getDate() + 14);
+    newDueDate.setDate(newDueDate.getDate() + RENEWAL_PERIOD_DAYS);
 
     transaction.dueDate = newDueDate;
     transaction.renewals += 1;
@@ -178,9 +179,9 @@ export class CirculationService {
 
     return transactions.reduce((total, txn) => {
       const daysOverdue = Math.ceil(
-        (new Date().getTime() - txn.dueDate.getTime()) / (1000 * 60 * 60 * 24),
+        (Date.now() - txn.dueDate.getTime()) / (1000 * 60 * 60 * 24),
       );
-      return total + daysOverdue * 2;
+      return total + daysOverdue * FINE_PER_DAY;
     }, 0);
   }
 }

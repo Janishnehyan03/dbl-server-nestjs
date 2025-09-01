@@ -9,15 +9,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.BooksModule = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
-const books_service_1 = require("./books.service");
-const books_controller_1 = require("./books.controller");
+const circulation_schema_1 = require("../circulation/schemas/circulation.schema");
 const book_schema_1 = require("./book.schema");
+const books_controller_1 = require("./books.controller");
+const books_service_1 = require("./books.service");
 let BooksModule = class BooksModule {
 };
 exports.BooksModule = BooksModule;
 exports.BooksModule = BooksModule = __decorate([
     (0, common_1.Module)({
-        imports: [mongoose_1.MongooseModule.forFeature([{ name: book_schema_1.Book.name, schema: book_schema_1.BookSchema }])],
+        imports: [
+            mongoose_1.MongooseModule.forFeature([
+                { name: book_schema_1.Book.name, schema: book_schema_1.BookSchema },
+                { name: circulation_schema_1.Circulation.name, schema: circulation_schema_1.CirculationSchema },
+            ]),
+        ],
         controllers: [books_controller_1.BooksController],
         providers: [books_service_1.BooksService],
     })

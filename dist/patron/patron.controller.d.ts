@@ -9,8 +9,8 @@ export declare class PatronController {
         metadata: any;
     }): Promise<Patron[]>;
     findAll(query: any): Promise<Patron[]>;
-    findById(id: string): Promise<Patron>;
-    findByAdmissionNumber(id: string): Promise<Patron>;
+    findById(id: string): Promise<any>;
+    findByAdmissionNumber(id: string): Promise<any>;
     searchPatrons(admissionNumber: string): Promise<Patron>;
     update(id: string, updateData: Partial<Patron>): Promise<Patron>;
     delete(id: string): Promise<{

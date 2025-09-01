@@ -18,9 +18,6 @@ let Author = class Author extends mongoose_2.Document {
     nationality;
     email;
     website;
-    linkedin;
-    twitter;
-    facebook;
     updatedAt;
     createdAt;
 };
@@ -45,18 +42,6 @@ __decorate([
     (0, mongoose_1.Prop)({ trim: true }),
     __metadata("design:type", String)
 ], Author.prototype, "website", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ trim: true }),
-    __metadata("design:type", String)
-], Author.prototype, "linkedin", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ trim: true }),
-    __metadata("design:type", String)
-], Author.prototype, "twitter", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ trim: true }),
-    __metadata("design:type", String)
-], Author.prototype, "facebook", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ default: Date.now }),
     __metadata("design:type", Date)
